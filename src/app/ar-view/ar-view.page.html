@@ -1,0 +1,98 @@
+<ion-header *ngIf="!showScene">
+  <ion-toolbar>
+    <ion-title>AR Setup</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="clearData()" color="danger">
+        <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div *ngIf="!showScene" class="setup-container">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Add New Target</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="stacked">Select Image</ion-label>
+          <input type="file" (change)="onFileSelected($event)" accept="image/*" />
+        </ion-item>
+        <div *ngIf="currentImage" class="preview-container">
+          <img [src]="currentImage" alt="Preview" class="preview-image" />
+        </div>
+
+        <ion-item>
+          <ion-label>Marker Type</ion-label>
+          <ion-select [(ngModel)]="currentMarkerType">
+            <ion-select-option value="hiro">Hiro</ion-select-option>
+            <ion-select-option value="barcode">Barcode</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item *ngIf="currentMarkerType === 'barcode'">
+          <ion-label position="stacked">Barcode Value</ion-label>
+          <ion-input type="number" [(ngModel)]="currentBarcodeValue"></ion-input>
+        </ion-item>
+
+        <ion-button expand="block" (click)="addTarget()" [disabled]="!currentImage">Add Target</ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-list *ngIf="targets.length > 0">
+      <ion-list-header>
+        <ion-label>Configured Targets</ion-label>
+      </ion-list-header>
+      <ion-item *ngFor="let target of targets; let i = index">
+        <ion-thumbnail slot="start">
+          <img [src]="target.imageSrc" />
+        </ion-thumbnail>
+        <ion-label>
+          <h2>{{ target.type | titlecase }}</h2>
+          <p *ngIf="target.type === 'barcode'">Value: {{ target.value }}</p>
+        </ion-label>
+        <ion-button slot="end" fill="clear" color="danger" (click)="deleteTarget(i)">
+          <ion-icon name="trash"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </ion-list>
+
+    <!-- Generated Barcodes Section -->
+    <div *ngIf="targets.length > 0" class="barcode-section">
+      <h3>Generated Barcodes</h3>
+      <ion-grid>
+        <ion-row>
+          <ng-container *ngFor="let target of targets">
+            <ion-col size="6" *ngIf="target.type === 'barcode'">
+              <ion-card class="barcode-card">
+                <ion-card-content>
+                  <div class="barcode-visual">
+                    <img [src]="getBarcodeUrl(target.value!)" [alt]="'Barcode ' + target.value" class="barcode-img">
+                    <div class="barcode-value">Value: {{ target.value }}</div>
+                  </div>
+                  <p>Type: 3x3 Matrix</p>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ng-container>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <ion-button expand="block" color="success" (click)="startAR()" [disabled]="targets.length === 0" class="start-btn">
+      Start AR Experience
+    </ion-button>
+  </div>
+
+  <div *ngIf="showScene" class="ar-container">
+    <iframe src="assets/aframe-ar.html" frameborder="0" style="width: 100%; height: 100%; border: none;"></iframe>
+
+    <ion-fab vertical="top" horizontal="end" slot="fixed">
+      <ion-fab-button (click)="close()" color="light" size="small">
+        <ion-icon name="close"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  </div>
+</ion-content>
